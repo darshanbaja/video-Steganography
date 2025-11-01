@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Steganography (LSB + AES)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 Video Steganography</h1>
+    <p>Hide and reveal secret messages inside videos securely.</p>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Decoded Message Output -->
+    {% if decoded_message %}
+    <div class="decoded-box" style="margin-top:20px; padding:15px; border-radius:8px; background:#222; color:#0f0;">
+      <h3>🪄 Decoded Message:</h3>
+      <p>{{ decoded_message }}</p>
+    </div>
+    {% endif %}
+
+
+    {% if avi_download or mp4_download %}
+  <div class="download-links">
+    <h3>✅ Download Encoded Video:</h3>
+    {% if avi_download %}
+      <a href="{{ avi_download }}" download>Download AVI</a><br>
+    {% endif %}
+    {% if mp4_download %}
+      <a href="{{ mp4_download }}" download>Download MP4</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+
+    <!-- Encode Form -->
+    <div class="form-section">
+      <h2>🔐 Encode Message</h2>
+      <form action="/encode" method="post" enctype="multipart/form-data">
+        <input type="file" name="video" accept="video/*" required><br>
+        <textarea name="message" placeholder="Enter secret message..." required></textarea><br>
+        <input type="password" name="password" placeholder="Enter password" required><br>
+        <button type="submit">Encode & Download</button>
+      </form>
+    </div>
+
+
+
+
+    <!-- Decode Form -->
+    <div class="form-section">
+      <h2>🔎 Decode Message</h2>
+      <form action="/decode" method="post" enctype="multipart/form-data">
+        <input type="file" name="video" accept="video/*" required><br>
+        <input type="password" name="password" placeholder="Enter password" required><br>
+        <button type="submit">Decode Message</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
