@@ -1,5 +1,6 @@
 # steg/extract.py
 import cv2
+import sys
 from .crypto_utils import decrypt_message
 from .bit_utils import extract_bits_from_frame, bits_to_bytes
 from . import config
@@ -19,7 +20,9 @@ def extract_video(input_path, password):
             ret, frame = cap.read()
             if not ret:
                 raise ValueError("Ran out of frames")
-            bit_buffer.extend(extract_bits_from_frame(frame, float('inf')))
+            # USE sys.maxsize INSTEAD OF float('inf')
+            frame_bits = extract_bits_from_frame(frame, sys.maxsize)
+            bit_buffer.extend(frame_bits)
         bits, bit_buffer = bit_buffer[:n], bit_buffer[n:]
         return bits
 

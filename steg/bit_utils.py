@@ -1,5 +1,6 @@
 # steg/bit_utils.py
 import numpy as np
+import sys
 from typing import Iterable, Iterator, List
 
 def bytes_to_bits(b: bytes) -> Iterator[int]:
@@ -31,12 +32,8 @@ def bits_to_bytes(bits: Iterable[int]) -> bytes:
         out.append(acc)
     return bytes(out)
 
+# steg/bit_utils.py
 def embed_bits_into_frame(frame: np.ndarray, bit_iter: Iterator[int]) -> tuple[np.ndarray, bool]:
-    """
-    Embed bits from bit_iter into this frame's LSBs.
-    Returns (new_frame, done_flag)
-    where done_flag=True if all bits have been embedded.
-    """
     if frame is None:
         return frame, True
 
@@ -51,31 +48,32 @@ def embed_bits_into_frame(frame: np.ndarray, bit_iter: Iterator[int]) -> tuple[n
             bit = next(bit_iter)
             pixel_idx = idx // c
             channel = idx % c
-            flat[pixel_idx, channel] = (flat[pixel_idx, channel] & ~1) | bit
+
+            # FIX: Clamp to 0-255 and use int
+            val = int(flat[pixel_idx, channel])
+            val = max(0, min(255, val))  # Clamp
+            new_val = (val & ~1) | bit
+            flat[pixel_idx, channel] = new_val
+
             idx += 1
     except StopIteration:
-        done = True  # all bits were written
+        done = True
 
-    new_frame = flat.reshape(frame.shape)
+    new_frame = flat.reshape(h, w, c)
     return new_frame, done
 
 
 
-def extract_bits_from_frame(frame: np.ndarray, num_bits: int) -> List[int]:
-    """
-    Extract up to num_bits bits from the frame's LSBs in the same order used by embed_bits_into_frame.
-    Returns a list of bits (0/1). If num_bits is larger than frame capacity, returns as many as available.
-    """
+def extract_bits_from_frame(frame: np.ndarray, max_bits: int = sys.maxsize) -> List[int]:
     if frame is None:
         return []
-
     flat = frame.reshape(-1, frame.shape[2])
-    total_slots = flat.size
+    total = min(max_bits, flat.size)  # Now safe
     bits = []
-    # iterate scalar-wise
-    for scalar_index in range(min(num_bits, total_slots)):
-        pixel_idx = scalar_index // frame.shape[2]
-        channel = scalar_index % frame.shape[2]
+    for i in range(total):
+        pixel_idx = i // 3
+        channel = i % 3
         val = int(flat[pixel_idx, channel])
+        val = max(0, min(255, val))
         bits.append(val & 1)
     return bits
