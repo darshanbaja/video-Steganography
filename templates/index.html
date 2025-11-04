@@ -51,15 +51,16 @@
 
     <!-- Download Link (Only ONE File) -->
       {% if download_link %}
-    <div class="download-links">
-      <h3>Download Encoded Video</h3>
-      <a href="{{ url_for('download_file', filename=download_link.split('/')[-1]) }}" 
-        class="btn btn-download" download>
-        Download .mkv (Open in VLC)
-      </a>
-      <p><small>Playable in <strong>VLC</strong> • Use this file to decode</small></p>
-    </div>
-  {% endif %}
+  <div class="download-links">
+    <h3>Download Encoded Video</h3>
+    <p><strong>Saved as:</strong> <code>{{ stego_filename }}</code></p>
+    <a href="{{ url_for('download_file', filename=download_link.split('/')[-1]) }}" 
+       class="btn btn-download" download>
+      Download {{ stego_filename }}
+    </a>
+    <p><small>Open in <strong>VLC</strong> to play video + audio</small></p>
+  </div>
+{% endif %}
 
     <!-- Encode Form -->
     <div class="form-section">
