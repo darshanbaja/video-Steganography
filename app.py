@@ -41,14 +41,11 @@ def encode():
 
     output_base = os.path.join(app.config['UPLOAD_FOLDER'], 'encoded_output.avi')
 
+    # In /encode route
+   
     try:
-        avi_path, mp4_path = embed_video(input_path, output_base, message, password)
-        flash("Message encoded successfully!")
-        return render_template(
-            "index.html",
-            avi_download=avi_path.replace('\\', '/'),
-            mp4_download=mp4_path.replace('\\', '/')
-        )
+        final_path = embed_video(input_path, output_base, message, password)
+        return render_template("index.html", download_link=final_path.replace('\\', '/'))
     except Exception as e:
         flash(f"Error: {str(e)}")
         return render_template("index.html")
@@ -60,10 +57,14 @@ def decode():
         return render_template("index.html")
 
     video = request.files['video']
-    password = request.form.get('password', '')
+    # In /decode — ONLY .avi
+    if not video.filename.lower().endswith(('.avi', '.mkv')):
+        flash("Please upload the encoded .avi or .mkv file only!")
+        return render_template("index.html")
 
-    if not video.filename or not password:
-        flash("Video and password required")
+    password = request.form.get('password', '')
+    if not password:
+        flash("Password required")
         return render_template("index.html")
 
     input_path = os.path.join(app.config['UPLOAD_FOLDER'], video.filename)
@@ -71,7 +72,7 @@ def decode():
 
     try:
         message = extract_video(input_path, password)
-        flash("Message decoded!")
+        flash("Message decoded successfully!")
         return render_template("index.html", decoded_message=message)
     except Exception as e:
         flash(f"Error: {str(e)}")

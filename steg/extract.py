@@ -1,6 +1,5 @@
 # steg/extract.py
 import cv2
-import struct
 from .crypto_utils import decrypt_message
 from .bit_utils import extract_bits_from_frame, bits_to_bytes
 from . import config
@@ -24,19 +23,19 @@ def extract_video(input_path, password):
         bits, bit_buffer = bit_buffer[:n], bit_buffer[n:]
         return bits
 
-    # Extract header
+    # Header
     header_bits = get_bits(config.HEADER_SIZE * 8)
     header_bytes = bits_to_bytes(header_bits)
 
     magic = header_bytes[:7].rstrip(b"\x00")
     if magic != MAGIC:
-        raise ValueError(f"Magic mismatch: {magic!r}")
+        raise ValueError(f"Magic mismatch: {magic!r} (expected {MAGIC!r})")
 
     salt = header_bytes[7:23]
     nonce = header_bytes[23:35]
-    clen = struct.unpack(">I", header_bytes[35:39])[0]
+    clen = int.from_bytes(header_bytes[35:39], 'big')
 
-    # Extract ciphertext
+    # Payload
     ciphertext = bits_to_bytes(get_bits(clen * 8))
     cap.release()
 
